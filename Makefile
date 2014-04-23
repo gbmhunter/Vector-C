@@ -23,24 +23,29 @@ INCLUDES = -I./src/include
 # their path using -Lpath, something like:
 LFLAGS = -L./lib/UnitTest++
 
+CPPUTEST_HOME = lib/cpputest
+
 # Define any libraries to link into executable:
 #   if I want to link in libraries (libx.so or libx.a) I use the -llibname 
 #   option, something like (this will link in libmylib.so and libm.so:
 LIBS = -lUnitTest++
 
-SRC_OBJ_FILES := $(patsubst %.c,%.o,$(wildcard src/*.c))
-SRC_LD_FLAGS := 
-SRC_CC := gcc
+SRC_OBJ_FILES 	:= $(patsubst %.c,%.o,$(wildcard src/*.c))
+SRC_LD_FLAGS 	:= 
+SRC_CC 			:= gcc
 # -c : Stops the compiler from trying to link and create executable
-SRC_CC_FLAGS := -Wall -c
+SRC_CC_FLAGS 	:= -Wall -c -g
 
-TEST_OBJ_FILES := $(patsubst %.cpp,%.o,$(wildcard test/*.cpp))
-TEST_LD_FLAGS := 
-TEST_CC_FLAGS := -Wall -g
+TEST_OBJ_FILES 	:= $(patsubst %.cpp,%.o,$(wildcard test/*.cpp))
+TEST_LD_FLAGS 	:= -L./$(CPPUTEST_HOME)/lib -lCppUTest -lCppUTestExt
+TEST_CC			:= g++
+TEST_CC_FLAGS 	:= -Wall -c -g -I./$(CPPUTEST_HOME)/include -std=c++0x
 
-EXAMPLE_OBJ_FILES := $(patsubst %.cpp,%.o,$(wildcard example/*.cpp))
-EXAMPLE_LD_FLAGS := 
-EXAMPLE_CC_FLAGS := -Wall -g -std=c++0x
+EXAMPLE_OBJ_FILES 	:= $(patsubst %.cpp,%.o,$(wildcard example/*.cpp))
+EXAMPLE_LD_FLAGS 	:= 
+EXAMPLE_CC_FLAGS 	:= -Wall -g -std=c++0x
+
+
 
 .PHONY: depend clean
 
@@ -48,7 +53,7 @@ EXAMPLE_CC_FLAGS := -Wall -g -std=c++0x
 all: srcLib test example
 	
 	# Run unit tests:
-	#@./test/Tests.elf
+	@./test/Tests.elf
 
 #======== CSV-CPP LIB ==========	
 
@@ -65,26 +70,26 @@ src/%.o: src/%.c
 		-e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
 		rm -f $*.d >/dev/null 2>&1
 
-#-include $(SRC_OBJ_FILES:.o=.d)
+-include $(SRC_OBJ_FILES:.o=.d)
 	
 	
 # ======== TEST ========
 	
 # Compiles unit test code
-#test : $(TEST_OBJ_FILES) | srcLib unitTestLib
-#	# Compiling unit test code
-#	g++ $(TEST_LD_FLAGS) -o ./test/CsvCppTest.elf $(TEST_OBJ_FILES) -L./lib/UnitTest++ -lUnitTest++ -L./ -lCsvCpp
+test : $(TEST_OBJ_FILES) | srcLib
+	# Compiling unit test code
+	$(TEST_CC) -o ./test/Tests.elf $(TEST_OBJ_FILES) $(TEST_LD_FLAGS) -L./ -lSrc
 
 # Generic rule for test object files
 test/%.o: test/%.cpp
 	# Compiling src/ files
-	$(COMPILE.c) -MD -o $@ $<
+	$(TEST_CC) $(TEST_CC_FLAGS) -MD -o $@ $<
 	-@cp $*.d $*.P >/dev/null 2>&1; \
 	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 		-e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
 		rm -f $*.d >/dev/null 2>&1
 
-#-include $(TEST_OBJ_FILES:.o=.d)
+-include $(TEST_OBJ_FILES:.o=.d)
 	
 #unitTestLib:
 	# Compile UnitTest++ library (has it's own Makefile)
