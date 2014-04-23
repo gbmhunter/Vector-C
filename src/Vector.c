@@ -23,26 +23,25 @@
 //================================== PRECOMPILER CHECKS =========================================//
 //===============================================================================================//
 
-
+// none
 
 //===============================================================================================//
 //============================================ DEFINES ==========================================//
 //===============================================================================================//
 
-
+// none
 
 //===============================================================================================//
 //======================================== TYPEDEF's ============================================//
 //===============================================================================================//
 
-
+// none
 
 //===============================================================================================//
 //=================================== PRIVATE VARIABLES =========================================//
 //===============================================================================================//
 
-
-
+// none
 
 //===============================================================================================//
 //=================================== PRIVATE FUNCTION PROTOTYPES ===============================//
@@ -55,20 +54,68 @@ void Vector_IncreseCapacityIfFull(vector_t *vector);
 //================================== PUBLIC FUNCTIONS ===========================================//
 //===============================================================================================//
 
-
-void Vector_Init(vector_t *vector, uint32_t sizeOfObject, uint32_t blockSize)
+void Vector_Init(vector_t *vector, uint32_t sizeOfObject, uint32_t growthSize)
 {
+	#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+		printf("Initialising vector...\r\n");
+	#endif
+
+	if(vector == NULL)
+	{
+		#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+			printf("ERROR: Vector is NULL!\r\n");
+		#endif
+		return;
+	}
+
     // Initialize sizes and capacity
     vector->size = 0;
-    vector->capacity = blockSize;
+    vector->capacity = 0;
+
+    if(growthSize == 0)
+    {
+		#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+    		printf("ERROR: Growth size to Vector_Init() cannot be 0!\r\n");
+		#endif
+    	return;
+    }
+    vector->growthSize = growthSize;
     vector->sizeOfObject = sizeOfObject;
 
+	#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+    	printf("Allocating %u bytes for object array.\r\n", vector->sizeOfObject*vector->growthSize);
+	#endif
+
     // Allocate memory for vector->data
-    vector->objectA = malloc(vector->sizeOfObject*vector->capacity);
+    vector->objectA = malloc(vector->sizeOfObject*vector->growthSize);
+
+    vector->capacity += vector->growthSize;
+
+    if(vector->objectA == NULL)
+	{
+		#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+			printf("ERROR: malloc() failed!\r\n");
+		#endif
+		return;
+	}
+
+    vector->initComplete = 345;
 }
 
 void Vector_Append(vector_t *vector, void* object)
 {
+	#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+		printf("Appending object to vector...\r\n");
+	#endif
+
+	if(vector->initComplete != 345)
+	{
+		#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+			printf("ERROR: Vector_Append() called before Vector_Init() run!\r\n");
+		#endif
+		return;
+	}
+
     // Make sure there's room to expand into
     Vector_IncreseCapacityIfFull(vector);
 
@@ -82,16 +129,24 @@ void Vector_Append(vector_t *vector, void* object)
         // Copy the object after the last element in the current array
         memcpy(vector->objectA + vector->size*vector->sizeOfObject, object, vector->sizeOfObject);
     }
-    
+
     // Increment vector->size
     vector->size++;
 }
 
 void Vector_Get(vector_t *vector, uint32_t index, void* destination)
 {
+	if(vector->initComplete != 345)
+	{
+		#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+			printf("ERROR: Vector_Get() called before Vector_Init() run!\r\n");
+		#endif
+		return;
+	}
+
     if (index >= vector->size || index < 0)
     {
-        Vector_SendDebugMsg("Index %d out of bounds for vector of size %d.\r\n", index, vector->size);
+        //Vector_SendDebugMsg("Index %d out of bounds for vector of size %d.\r\n", index, vector->size);
         return;
     }
     
@@ -101,6 +156,14 @@ void Vector_Get(vector_t *vector, uint32_t index, void* destination)
 
 void Vector_Set(vector_t *vector, uint32_t index, const void* object)
 {
+	if(vector->initComplete != 345)
+	{
+		#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+			printf("ERROR: Vector_Set() called before Vector_Init() run!\r\n");
+		#endif
+		return;
+	}
+
     // Zero fill the vector up to the desired index
     while(index >= vector->size)
     {
@@ -113,22 +176,58 @@ void Vector_Set(vector_t *vector, uint32_t index, const void* object)
 
 void Vector_IncreseCapacityIfFull(vector_t *vector)
 {
-    if (vector->size >= vector->capacity - 1)
+	// Should never be greater than!
+    if (vector->size >= vector->capacity)
     {
         // Vector is full
-        
+		#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+    		printf("Increasing capacity from %u bytes to %u bytes...\r\n", vector->capacity, vector->capacity + vector->growthSize);
+		#endif
+
         // Resize the allocated memory for the object array
         vector->objectA = realloc(vector->objectA, vector->sizeOfObject*(vector->capacity + vector->growthSize));
         
+        if(vector->objectA == NULL)
+        {
+			#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+        		printf("ERROR: realloc() failed!\r\n");
+			#endif
+
+        	return;
+        }
+
+		#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+        	printf("Old capacity = %u\r\n", vector->capacity);
+		#endif
+
         // Increase the capacity count by growthSize
         vector->capacity += vector->growthSize;
+
+		#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+        	printf("New capacity = %u\r\n", vector->capacity);
+		#endif
     }
 }
 
 void Vector_Free(vector_t *vector)
 {
-	// Free the object array (this is the only part of vector which is malloc'ed)
-    free(vector->objectA);
+	#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+		printf("Vector_Free() called.\r\n");
+	#endif
+
+	if(vector->initComplete != 345)
+	{
+		#if(vectorConfig_ENABLE_DEBUG_CODE == 1)
+			printf("ERROR: Vector_Free() called before Vector_Init() run!\r\n");
+		#endif
+		return;
+	}
+
+	if(vector->objectA != NULL)
+	{
+		// Free the object array (this is the only part of vector which is malloc'ed)
+		free(vector->objectA);
+	}
 }
 
 

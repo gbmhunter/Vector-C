@@ -8,44 +8,25 @@
 # @details
 #					See README in repo root dir for more info.
 
-# Define the compiler to use (e.g. gcc, g++)
-#CC = g++
-
-# Define any compile-time flags (e.g. -Wall, -g)
-#CFLAGS = -Wall -g -std=c++0x
-
-# Define any directories containing header files other than /usr/include.
-# Prefix every directory with "-I" e.g. "-I./src/include"
-INCLUDES = -I./src/include
-
-# Define library paths in addition to /usr/lib
-# if I wanted to include libraries not in /usr/lib I'd specify
-# their path using -Lpath, something like:
-LFLAGS = -L./lib/UnitTest++
-
 CPPUTEST_HOME = lib/cpputest
 
-# Define any libraries to link into executable:
-#   if I want to link in libraries (libx.so or libx.a) I use the -llibname 
-#   option, something like (this will link in libmylib.so and libm.so:
-LIBS = -lUnitTest++
-
+#========= SRC ========#
 SRC_OBJ_FILES 	:= $(patsubst %.c,%.o,$(wildcard src/*.c))
 SRC_LD_FLAGS 	:= 
 SRC_CC 			:= gcc
 # -c : Stops the compiler from trying to link and create executable
-SRC_CC_FLAGS 	:= -Wall -c -g
+SRC_CC_FLAGS 	:= -c -Wall -fpic -include $(CPPUTEST_HOME)/include/CppUTest/MemoryLeakDetectorMallocMacros.h
 
+#========= TEST ==========#
 TEST_OBJ_FILES 	:= $(patsubst %.cpp,%.o,$(wildcard test/*.cpp))
-TEST_LD_FLAGS 	:= -L./$(CPPUTEST_HOME)/lib -lCppUTest -lCppUTestExt
+TEST_LD_FLAGS 	:= -L./ -lSrc -L./$(CPPUTEST_HOME)/lib -lCppUTest -lCppUTestExt  
 TEST_CC			:= g++
-TEST_CC_FLAGS 	:= -Wall -c -g -I./$(CPPUTEST_HOME)/include -std=c++0x
+TEST_CC_FLAGS 	:= -Wall -c -g -I./$(CPPUTEST_HOME)/include -std=c++0x -L./ -lSrc
 
+#======= EXAMPLE =======#
 EXAMPLE_OBJ_FILES 	:= $(patsubst %.cpp,%.o,$(wildcard example/*.cpp))
 EXAMPLE_LD_FLAGS 	:= 
 EXAMPLE_CC_FLAGS 	:= -Wall -g -std=c++0x
-
-
 
 .PHONY: depend clean
 
@@ -59,7 +40,7 @@ all: srcLib test example
 
 srcLib : $(SRC_OBJ_FILES)
 	# Make Clide library
-	ar r libSrc.a $(SRC_OBJ_FILES)
+	ar rcs libSrc.a $(SRC_OBJ_FILES)
 	
 # Generic rule for src object files
 src/%.o: src/%.c
@@ -76,9 +57,9 @@ src/%.o: src/%.c
 # ======== TEST ========
 	
 # Compiles unit test code
-test : $(TEST_OBJ_FILES) | srcLib
+test : $(TEST_OBJ_FILES) | srcLib unitTestLib
 	# Compiling unit test code
-	$(TEST_CC) -o ./test/Tests.elf $(TEST_OBJ_FILES) $(TEST_LD_FLAGS) -L./ -lSrc
+	$(TEST_CC) -o ./test/Tests.elf $(TEST_OBJ_FILES) $(TEST_LD_FLAGS) 
 
 # Generic rule for test object files
 test/%.o: test/%.cpp
@@ -91,9 +72,9 @@ test/%.o: test/%.cpp
 
 -include $(TEST_OBJ_FILES:.o=.d)
 	
-#unitTestLib:
+unitTestLib:
 	# Compile UnitTest++ library (has it's own Makefile)
-#	$(MAKE) -C ./lib/UnitTest++/ all
+	$(MAKE) -C ./lib/cpputest/ all
 	
 # ===== EXAMPLE ======
 
@@ -108,18 +89,18 @@ example/%.o: example/%.cpp
 	
 # ====== CLEANING ======
 	
-clean: clean-ut clean-csv-cpp
-	# Clean UnitTest++ library (has it's own Makefile)
-	$(MAKE) -C ./lib/UnitTest++/ clean
+clean: clean-ut clean-vector
+	# Clean cpputest library (has it's own Makefile)
+	$(MAKE) -C ./lib/cpputest/ clean
 	
 clean-ut:
 	@echo " Cleaning test object files..."; $(RM) ./test/*.o
 	@echo " Cleaning test executable..."; $(RM) ./test/*.elf
 	
-clean-csv-cpp:
+clean-vector:
 	@echo " Cleaning src object files..."; $(RM) ./src/*.o
 	@echo " Cleaning src dependency files..."; $(RM) ./src/*.d
-	@echo " Cleaning csv-cpp static library..."; $(RM) ./*.a
+	@echo " Cleaning static library..."; $(RM) ./*.a
 	@echo " Cleaning test object files..."; $(RM) ./test/*.o
 	@echo " Cleaning test dependency files..."; $(RM) ./test/*.d
 	@echo " Cleaning test executable..."; $(RM) ./test/*.elf

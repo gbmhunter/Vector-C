@@ -13,6 +13,10 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //===============================================================================================//
 //==================================== PUBLIC DEFINES ===========================================//
 //===============================================================================================//
@@ -27,20 +31,24 @@
 //! @brief 		The vector type, which holds and indexes objects.
 typedef struct 
 {
-    // Number of actual objects in array
+	//! @brief		Used to protect the vector object if it used without Vector_Init() being
+	//!				called first.
+	uint32_t initComplete;
+
+    //! @brief 		Number of actual objects in array
     uint32_t size;
     
-    // The size of a single object (in bytes)
+    //! @brief 		The size of a single object (in bytes)
     uint32_t sizeOfObject;
     
-    // Total number of slots this vector can currently hold
-    uint32_t capacity;  
+    //! @brief		Total number of slots this vector can currently hold
+    uint32_t capacity;
     
     //! @brief      Number of objects that the vector allocates for everytime
     //!             it needs to grow its memory (i.e. runs out of room).
     uint32_t growthSize;
     
-    // Pointer to the array of dynamically-created objects
+    //! @brief		Pointer to the array of dynamically-created objects
     void* objectA;
 } vector_t;
 
@@ -73,6 +81,10 @@ void Vector_Free(vector_t *vector);
 //===============================================================================================//
 //=================================== PUBLIC FUNCTION PROTOTYPES ================================//
 //===============================================================================================//
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif VECTOR_H // #ifndef VECTOR_H
     
