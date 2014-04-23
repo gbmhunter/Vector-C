@@ -12,7 +12,7 @@ A vector container (similar to C++'s std::vector) for C programming.
 - Author: gbmhunter <gbmhunter@gmail.com> (http://www.cladlab.com)
 - Created: 2014/04/22
 - Last Modified: 2014/04/23
-- Version: v1.0.0.0
+- Version: v1.0.1.0
 - Company: CladLabs
 - Project: Free Code Libraries
 - Language: C
@@ -103,6 +103,7 @@ Changelog
 ========= ========== ===================================================================================================
 Version    Date       Comment
 ========= ========== ===================================================================================================
+v1.0.1.0  2014/04/23 Deleted 'BasicTests.cpp'.
 v1.0.0.0  2014/04/23 Added unit tests for growth, size, basic getting/setting and memory leaks. Fixed bugs that these unit tests picked up. Added protection for vector object if Vector_Init() is not called. Added debug info, with ability to disable all debug code in the new file 'include/Config.h'. Added C++ header guards to all .h files.
 v0.3.0.0  2014/04/23 Unit test library compiling and linking correctly in project Makefile.
 v0.2.0.0  2014/04/23 Added cpputest as a git submodule to 'lib/cpputest'.
