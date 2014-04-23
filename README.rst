@@ -2,9 +2,9 @@
 vector-c
 ==================================================================
 
-------------------------------------------------------------------
-Vector container (similar to C++'s std::vector) for C programming.
-------------------------------------------------------------------
+--------------------------------------------------------------------
+A vector container (similar to C++'s std::vector) for C programming.
+--------------------------------------------------------------------
 
 .. image:: https://api.travis-ci.org/gbmhunter/vector-c.png?branch=master   
 	:target: https://travis-ci.org/gbmhunter/vector-c
@@ -12,7 +12,7 @@ Vector container (similar to C++'s std::vector) for C programming.
 - Author: gbmhunter <gbmhunter@gmail.com> (http://www.cladlab.com)
 - Created: 2014/04/22
 - Last Modified: 2014/04/23
-- Version: v0.1.0.0
+- Version: v0.2.0.0
 - Company: CladLabs
 - Project: Free Code Libraries
 - Language: C
@@ -103,5 +103,6 @@ Changelog
 ========= ========== ===================================================================================================
 Version    Date       Comment
 ========= ========== ===================================================================================================
+v0.2.0.0  2014/04/23 Added cpputest as a git submodule to 'lib/cpputest'.
 v0.1.0.0  2014/04/23 Initial commit. Vector.c and Vector.h are present but havn't been tested yet. README needs updating.
 ========= ========== ===================================================================================================
